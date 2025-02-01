@@ -11,6 +11,7 @@
             flex-direction: column;
             align-items: center;
             margin-top: 50px;
+            padding: 10px;
         }
         input, button {
             padding: 10px;
@@ -19,10 +20,12 @@
             border-radius: 5px;
         }
         .output {
-            width: 1600px;
+            width: 100%;
+            max-width: 800px;
             border: 1px solid #ddd;
             padding: 10px;
             min-height: 100px;
+            box-sizing: border-box;
         }
         .entry {
             display: flex;
@@ -30,6 +33,7 @@
             align-items: center;
             padding: 5px;
             border-bottom: 1px solid #eee;
+            word-break: break-word;
         }
         .delete-btn {
             background-color: red;
@@ -40,6 +44,18 @@
         }
         .pagination {
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        @media (max-width: 500px) {
+            input, button {
+                width: 100%;
+                max-width: 300px;
+            }
+            .output {
+                width: 100%;
+            }
         }
     </style>
 </head>
