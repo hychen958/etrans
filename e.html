@@ -12,10 +12,9 @@
             align-items: center;
             margin-top: 50px;
         }
-        input {
+        input, button {
             padding: 10px;
-            width: 300px;
-            margin-bottom: 10px;
+            margin: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
@@ -26,8 +25,18 @@
             min-height: 100px;
         }
         .entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 5px;
             border-bottom: 1px solid #eee;
+        }
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
         }
         .pagination {
             margin-top: 10px;
@@ -35,55 +44,104 @@
     </style>
 </head>
 <body>
-    <input type="text" id="textInput" placeholder="輸入並按 Enter">
+    <input type="text" id="textInput" placeholder="輸入文字">
+    <button id="saveButton">輸入</button>
+    <button id="downloadButton">下載資料</button>
+    <input type="file" id="uploadInput" accept=".txt">
     <div class="output" id="output"></div>
     <div class="pagination">
         <button id="prevPage">上一頁</button>
-        <span id="pageNumber">第 1 頁</span>
+        <span id="pageNumber">第 <span id="currentPage">1</span> 頁</span>
         <button id="nextPage">下一頁</button>
     </div>
 
     <script>
-        let entries = JSON.parse(localStorage.getItem("entries")) || [];
-        let currentPage = 1;
+        let currentPage = parseInt(localStorage.getItem("currentPage")) || 1;
+        let pageKey = `entries_page_${currentPage}`;
+        let entries = JSON.parse(localStorage.getItem(pageKey)) || [];
 
+        document.getElementById("saveButton").addEventListener("click", saveEntry);
         document.getElementById("textInput").addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && this.value.trim() !== "") {
-                entries.push(this.value);
-                localStorage.setItem("entries", JSON.stringify(entries));
-                this.value = "";
-                displayEntries();
+            if (event.key === "Enter") {
+                saveEntry();
             }
         });
+
+        document.getElementById("downloadButton").addEventListener("click", downloadData);
+        document.getElementById("uploadInput").addEventListener("change", uploadData);
+
+        function saveEntry() {
+            let input = document.getElementById("textInput");
+            if (input.value.trim() !== "") {
+                entries.push(input.value);
+                localStorage.setItem(pageKey, JSON.stringify(entries));
+                input.value = "";
+                displayEntries();
+            }
+        }
+
+        function deleteEntry(index) {
+            entries.splice(index, 1);
+            localStorage.setItem(pageKey, JSON.stringify(entries));
+            displayEntries();
+        }
+
+        function downloadData() {
+            let data = entries.join("\n");
+            let blob = new Blob([data], { type: "text/plain" });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `page_${currentPage}_data.txt`;
+            a.click();
+        }
+
+        function uploadData(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let content = e.target.result.split("\n");
+                entries = content.filter(line => line.trim() !== "");
+                localStorage.setItem(pageKey, JSON.stringify(entries));
+                displayEntries();
+            };
+            reader.readAsText(file);
+        }
 
         document.getElementById("prevPage").addEventListener("click", function() {
             if (currentPage > 1) {
                 currentPage--;
-                displayEntries();
+                localStorage.setItem("currentPage", currentPage);
+                loadPage();
             }
         });
 
         document.getElementById("nextPage").addEventListener("click", function() {
-            if (currentPage < entries.length) {
-                currentPage++;
-                displayEntries();
-            }
+            currentPage++;
+            localStorage.setItem("currentPage", currentPage);
+            loadPage();
         });
 
         function displayEntries() {
             const output = document.getElementById("output");
             output.innerHTML = "";
-            entries.forEach(entry => {
+            entries.forEach((entry, index) => {
                 let div = document.createElement("div");
                 div.className = "entry";
-                div.textContent = entry;
+                div.innerHTML = `<span>${entry}</span> <button class='delete-btn' onclick='deleteEntry(${index})'>刪除</button>`;
                 output.appendChild(div);
             });
-            document.getElementById("pageNumber").textContent = `第 ${currentPage} 頁`;
+            document.getElementById("currentPage").textContent = currentPage;
+        }
+
+        function loadPage() {
+            pageKey = `entries_page_${currentPage}`;
+            entries = JSON.parse(localStorage.getItem(pageKey)) || [];
+            displayEntries();
         }
 
         // 頁面載入時顯示已存的資料
-        displayEntries();
+        loadPage();
     </script>
 </body>
 </html>
