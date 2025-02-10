@@ -149,9 +149,10 @@
             const output = document.getElementById("output");
             output.innerHTML = "";
             entries.forEach((entry, index) => {
+                let formattedEntry = entry.replace(/\./g, ".<br><br>"); // 替換句號為句號加兩個換行
                 let div = document.createElement("div");
                 div.className = "entry";
-                div.innerHTML = `<span>${entry}</span> <button class='delete-btn' onclick='deleteEntry(${index})'>刪除</button>`;
+                div.innerHTML = `<span>${formattedEntry}</span> <button class='delete-btn' onclick='deleteEntry(${index})'>刪除</button>`;
                 output.appendChild(div);
             });
             document.getElementById("currentPage").textContent = currentPage;
